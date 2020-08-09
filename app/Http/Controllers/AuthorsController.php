@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Author;
+use App\Traits\ApiResponserTrait;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * Authors Controller.
  */
 class AuthorsController extends Controller
 {
+    use ApiResponserTrait;
+
     /**
      * Returns the list of authors.
      *
@@ -16,6 +21,7 @@ class AuthorsController extends Controller
      */
     public function index()
     {
+        return $this->successResponse(Author::all());
     }
 
     /**
@@ -27,6 +33,7 @@ class AuthorsController extends Controller
      */
     public function show(int $author)
     {
+        return $this->successResponse(Author::findOrFail($author));
     }
 
     /**
@@ -38,6 +45,18 @@ class AuthorsController extends Controller
      */
     public function store(Request $request)
     {
+        $rules = [
+            'name' => 'required|max:255',
+            'gender' => 'required|in:male,female',
+            'country' => 'required|max:255',
+        ];
+
+        $data = $this->validate($request, $rules);
+
+        return $this->successResponse(
+            Author::create($data),
+            Response::HTTP_CREATED
+        );
     }
 
     /**
@@ -50,6 +69,28 @@ class AuthorsController extends Controller
      */
     public function update(Request $request, int $author)
     {
+        $rules = [
+            'name' => 'max:255',
+            'gender' => 'in:male,female',
+            'country' => 'max:255',
+        ];
+
+        $data = $this->validate($request, $rules);
+
+        $model = Author::findOrFail($author);
+
+        $model->fill($data);
+
+        if ($model->isClean()) {
+            return $this->errorResponse(
+                'At least one value must be changed.',
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        $model->save();
+
+        return $this->successResponse($model);
     }
 
     /**
@@ -61,5 +102,8 @@ class AuthorsController extends Controller
      */
     public function destroy(int $author)
     {
+        Author::findOrFail($author)->delete();
+
+        return $this->successResponse();
     }
 }

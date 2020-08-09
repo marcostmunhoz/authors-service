@@ -24,6 +24,6 @@ $router->group(
         $router->post('/', 'AuthorsController@store');
         $router->put('/{author}', 'AuthorsController@update');
         $router->patch('/{author}', 'AuthorsController@update');
-        $router->delete('/', 'AuthorsController@index');
+        $router->delete('/{author}', 'AuthorsController@destroy');
     }
 );
